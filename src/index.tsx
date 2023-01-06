@@ -1,6 +1,6 @@
 import { NativeModules, Dimensions } from 'react-native';
 
-export type RecordingStartResponse = 'started';
+export type RecordingStartResponse = 'started' | 'permission_error';
 
 export type RecordScreenConfigType = {
   mic?: boolean;
