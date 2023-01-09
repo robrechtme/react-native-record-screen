@@ -20,20 +20,4 @@ class RecordScreenPackage : ReactPackage, AppCompatActivity() {
   override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
     return emptyList<ViewManager<*, *>>()
   }
-
-//  override fun onCreate(savedInstanceState: Bundle?) {
-//    super.onCreate(savedInstanceState);
-//    println("onCreate");
-//  }
-//  override fun onStart() {
-//    super.onStart()
-//  }
-//
-//  override fun onPause() {
-//    super.onPause()
-//  }
-//
-//  override fun onStop() {
-//    super.onStop()
-//  }
 }

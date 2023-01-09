@@ -131,13 +131,13 @@ class RecordScreenModule(reactContext: ReactApplicationContext) : ReactContextBa
   override fun HBRecorderOnComplete() {
     println("HBRecorderOnComplete")
     if (stopPromise != null) {
-      var uri = hbRecorder!!.filePath;
+      val uri = hbRecorder!!.filePath;
       val response = WritableNativeMap();
       val result =  WritableNativeMap();
       result.putString("outputURL", uri);
       response.putString("status", "success");
       response.putMap("result", result);
-      stopPromise.resolve(response);
+      stopPromise!!.resolve(response);
     }
   }
 
