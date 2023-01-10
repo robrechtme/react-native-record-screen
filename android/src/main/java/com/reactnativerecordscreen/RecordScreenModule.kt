@@ -18,7 +18,8 @@ import java.io.IOException
 import kotlin.math.ceil
 
 
-class RecordScreenModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext), HBRecorderListener {
+class RecordScreenModule(reactContext: ReactApplicationContext) :
+  ReactContextBaseJavaModule(reactContext), HBRecorderListener {
 
   private var hbRecorder: HBRecorder? = null;
   private var screenWidth: Number = 0;
@@ -46,7 +47,12 @@ class RecordScreenModule(reactContext: ReactApplicationContext) : ReactContextBa
   }
 
   private val mActivityEventListener: ActivityEventListener = object : BaseActivityEventListener() {
-    override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, intent: Intent?) {
+    override fun onActivityResult(
+      activity: Activity,
+      requestCode: Int,
+      resultCode: Int,
+      intent: Intent?
+    ) {
       println("resultCode")
       println(resultCode)
       println("AppCompatActivity.RESULT_OK")
@@ -73,14 +79,34 @@ class RecordScreenModule(reactContext: ReactApplicationContext) : ReactContextBa
   @ReactMethod
   fun setup(readableMap: ReadableMap) {
     Application().onCreate()
-    screenWidth = if (readableMap.hasKey("width")) ceil(readableMap.getDouble("width")).toInt() else 0;
-    screenHeight = if (readableMap.hasKey("height")) ceil(readableMap.getDouble("height")).toInt() else 0;
-    mic =  if (readableMap.hasKey("mic")) readableMap.getBoolean("mic") else true;
+    screenWidth =
+      if (readableMap.hasKey("width")) ceil(readableMap.getDouble("width")).toInt() else 0;
+    screenHeight =
+      if (readableMap.hasKey("height")) ceil(readableMap.getDouble("height")).toInt() else 0;
+    mic = if (readableMap.hasKey("mic")) readableMap.getBoolean("mic") else true;
+
+
     hbRecorder = HBRecorder(reactApplicationContext, this);
     hbRecorder!!.setOutputPath(outputUri.toString());
-    if(doesSupportEncoder("h264")){
+
+    // For FPS and bitrate we need to enable custom settings
+    if (readableMap.hasKey("fps") || readableMap.hasKey("bitrate")) {
+      hbRecorder!!.enableCustomSettings();
+
+      if (readableMap.hasKey("fps")) {
+        val fps = readableMap.getInt("fps");
+        hbRecorder!!.setVideoFrameRate(fps);
+      }
+      if (readableMap.hasKey("bitrate")) {
+        val bitrate = readableMap.getInt("bitrate");
+        hbRecorder!!.setVideoBitrate(bitrate);
+      }
+    }
+
+
+    if (doesSupportEncoder("h264")) {
       hbRecorder!!.setVideoEncoder("H264");
-    }else{
+    } else {
       hbRecorder!!.setVideoEncoder("DEFAULT");
     }
     hbRecorder!!.isAudioEnabled(mic);
@@ -88,7 +114,8 @@ class RecordScreenModule(reactContext: ReactApplicationContext) : ReactContextBa
   }
 
   private fun startRecordingScreen() {
-    val mediaProjectionManager = reactApplicationContext.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager;
+    val mediaProjectionManager =
+      reactApplicationContext.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager;
     val permissionIntent = mediaProjectionManager.createScreenCaptureIntent();
     currentActivity!!.startActivityForResult(permissionIntent, SCREEN_RECORD_REQUEST_CODE);
   }
@@ -133,7 +160,7 @@ class RecordScreenModule(reactContext: ReactApplicationContext) : ReactContextBa
     if (stopPromise != null) {
       val uri = hbRecorder!!.filePath;
       val response = WritableNativeMap();
-      val result =  WritableNativeMap();
+      val result = WritableNativeMap();
       result.putString("outputURL", uri);
       response.putString("status", "success");
       response.putMap("result", result);

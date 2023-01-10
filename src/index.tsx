@@ -3,6 +3,10 @@ import { NativeModules, Dimensions } from 'react-native';
 export type RecordingStartResponse = 'started' | 'permission_error';
 
 export type RecordScreenConfigType = {
+  width?: number;
+  height?: number;
+  fps?: number;
+  bitrate?: number;
   mic?: boolean;
 };
 
@@ -15,61 +19,48 @@ export type RecordingSuccessResponse = {
 
 export type RecordingErrorResponse = {
   status: 'error';
-  result: any;
+  result: unknown;
 };
 
 export type RecordingResponse =
   | RecordingSuccessResponse
   | RecordingErrorResponse;
 
-type RecordScreenType = {
+type RecordScreenNativeModule = {
   setup(config: RecordScreenConfigType): void;
-  startRecording(
-    config?: RecordScreenConfigType
-  ): Promise<RecordingStartResponse>;
+  startRecording(): Promise<RecordingStartResponse>;
   stopRecording(): Promise<RecordingResponse>;
   clean(): Promise<string>;
 };
 
 const { RecordScreen } = NativeModules;
 
-const RS = RecordScreen as RecordScreenType;
+const RS = RecordScreen as RecordScreenNativeModule;
 
 class ReactNativeRecordScreenClass {
-  private _screenWidth = Dimensions.get('window').width;
-  private _screenHeight = Dimensions.get('window').height;
-
-  setup(config: RecordScreenConfigType = {}): void {
-    const conf = Object.assign(
-      {
-        mic: true,
-        width: this._screenWidth,
-        height: this._screenHeight,
-      },
-      config
-    );
-    RS.setup(conf);
+  private setup(config: RecordScreenConfigType = {}): void {
+    const { width, height } = Dimensions.get('window');
+    RS.setup({
+      mic: true,
+      width,
+      height,
+      fps: 60,
+      bitrate: 1920 * 1080 * 144,
+      ...config,
+    });
   }
 
-  async startRecording(
-    config: RecordScreenConfigType = {}
-  ): Promise<RecordingStartResponse> {
+  startRecording(config: RecordScreenConfigType = {}) {
     this.setup(config);
-    return new Promise((resolve, reject) => {
-      RS.startRecording().then(resolve).catch(reject);
-    });
+    return RS.startRecording();
   }
 
-  stopRecording(): Promise<RecordingResponse> {
-    return new Promise((resolve, reject) => {
-      RS.stopRecording().then(resolve).catch(reject);
-    });
+  stopRecording() {
+    return RS.stopRecording();
   }
 
-  clean(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      RS.clean().then(resolve).catch(reject);
-    });
+  clean() {
+    return RS.clean();
   }
 }
 
